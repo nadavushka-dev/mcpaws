@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	mcp "github.com/nadavushka-dev/go_mcp_wrapper/mcp"
+	mcp "github.com/nadavushka-dev/mcpaws/mcp"
 )
 
 func executeGitStatus(params json.RawMessage) (any, error) {

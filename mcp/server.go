@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	jsonrpc "github.com/nadavushka-dev/go_mcp_wrapper/jsonrpc"
+	jsonrpc "github.com/nadavushka-dev/mcpaws/jsonrpc"
 )
 
 func NewMcpServer(conf ServerConfig) *Server {

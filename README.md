@@ -1,11 +1,11 @@
-# Go MCP Wrapper
+# Go MCP Library
 
 A lightweight Go library for building Model Context Protocol (MCP) servers.
 
 ## Installation
 
 ```bash
-go get github.com/nadavushka-dev/go_mcp_wrapper
+go get github.com/nadavushka-dev/mcpaws
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ package main
 
 import (
     "encoding/json"
-    "github.com/nadavushka-dev/go_mcp_wrapper/mcp"
+    "github.com/nadavushka-dev/mcpaws/mcp"
 )
 
 func main() {
