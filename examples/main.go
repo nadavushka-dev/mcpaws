@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -8,8 +9,8 @@ import (
 	mcp "github.com/nadavushka-dev/mcpaws/mcp"
 )
 
-func executeGitStatus(params json.RawMessage) (any, error) {
-	cmd := exec.Command("git", "status", "--porcelain=v1", "--branch")
+func executeGitStatus(ctx context.Context, params json.RawMessage) (any, error) {
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain=v1", "--branch")
 	// cmd.Dir = "/Users/Nadavushka/code/personal/learn/mcp/git_mcp"
 
 	output, err := cmd.Output()
@@ -41,7 +42,7 @@ func executeGitStatus(params json.RawMessage) (any, error) {
 	}, nil
 }
 
-func executeGitLog(args json.RawMessage) (any, error) {
+func executeGitLog(ctx context.Context, args json.RawMessage) (any, error) {
 	const (
 		defaultLogCount = 3
 		maxLogCount     = 50
@@ -67,7 +68,7 @@ func executeGitLog(args json.RawMessage) (any, error) {
 		params.Count = maxLogCount
 	}
 
-	cmd := exec.Command("git", "log", "-n", fmt.Sprintf("%d", params.Count))
+	cmd := exec.CommandContext(ctx, "git", "log", "-n", fmt.Sprintf("%d", params.Count))
 
 	output, err := cmd.Output()
 

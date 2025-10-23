@@ -1,15 +1,16 @@
 package mcp
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 )
 
-func (s *Server) handleInitialize(params json.RawMessage) (any, error) {
+func (s *Server) handleInitialize(ctx context.Context, params json.RawMessage) (any, error) {
 	return initializedResult(s.serverConfig), nil
 }
 
-func (s *Server) handleToolsList(params json.RawMessage) (any, error) {
+func (s *Server) handleToolsList(ctx context.Context, params json.RawMessage) (any, error) {
 	toolSlice := make([]Tool, 0, len(s.Tools))
 	for key := range s.Tools {
 		toolSlice = append(toolSlice, s.Tools[key])
@@ -18,7 +19,7 @@ func (s *Server) handleToolsList(params json.RawMessage) (any, error) {
 	return &toolsListResult{Tools: toolSlice}, nil
 }
 
-func (s *Server) handleToolsCall(params json.RawMessage) (any, error) {
+func (s *Server) handleToolsCall(ctx context.Context, params json.RawMessage) (any, error) {
 	var callParams toolCallParams
 	if err := json.Unmarshal(params, &callParams); err != nil {
 		return nil, fmt.Errorf("invalid params: %w", err)
@@ -30,5 +31,5 @@ func (s *Server) handleToolsCall(params json.RawMessage) (any, error) {
 		return nil, fmt.Errorf("Unknown tool %s", callParams.Name)
 	}
 
-	return tool.Method(params)
+	return tool.Method(ctx, callParams.Arguments)
 }

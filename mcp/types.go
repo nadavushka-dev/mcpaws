@@ -1,6 +1,9 @@
 package mcp
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+)
 
 type ServerConfig struct {
 	ProtocolVersion string
@@ -8,7 +11,7 @@ type ServerConfig struct {
 	ServerInfo      ServerInfo
 }
 
-type Handler func(params json.RawMessage) (interface{}, error)
+type Handler func(context context.Context, params json.RawMessage) (any, error)
 
 type Server struct {
 	Handlers     map[string]Handler
@@ -39,10 +42,10 @@ type toolsListResult struct {
 }
 
 type Tool struct {
-	Name        string                                    `json:"name"`
-	Description string                                    `json:"description"`
-	InputSchema InputSchema                               `json:"inputSchema"`
-	Method      func(params json.RawMessage) (any, error) `json:"-"`
+	Name        string                                                             `json:"name"`
+	Description string                                                             `json:"description"`
+	InputSchema InputSchema                                                        `json:"inputSchema"`
+	Method      func(context context.Context, params json.RawMessage) (any, error) `json:"-"`
 }
 
 type InputSchema struct {
@@ -52,9 +55,9 @@ type InputSchema struct {
 }
 
 type Property struct {
-	Type        string      `json:"type"`
-	Description string      `json:"description"`
-	Default     interface{} `json:"default,omitempty"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	Default     any    `json:"default,omitempty"`
 }
 
 type toolCallParams struct {
@@ -69,4 +72,9 @@ type ToolCallResult struct {
 type ToolContent struct {
 	Type string `json:"type"`
 	Text string `json:"text"`
+}
+
+type handleErrorOpts struct {
+	code int
+	msg  string
 }

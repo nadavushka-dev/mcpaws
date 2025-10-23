@@ -2,9 +2,11 @@ package mcp
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	jsonrpc "github.com/nadavushka-dev/mcpaws/jsonrpc"
 )
@@ -66,35 +68,27 @@ func (s Server) Run() {
 }
 
 func (s Server) processRequest(req jsonrpc.RPCRequest) jsonrpc.RPCResponse {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	if req.ID == nil {
 		return jsonrpc.RPCResponse{}
 	}
 	handler := s.Handlers[req.Method]
 
 	if handler == nil {
-		return jsonrpc.RPCResponse{
-			Jsonrpc: "2.0",
-			ID:      req.ID,
-			Error: &jsonrpc.RPCError{
-				Code:    -32601,
-				Message: "Method not found",
-			},
-		}
+		return s.handleError(req.ID, nil, &handleErrorOpts{code: -32601, msg: "Method not found."})
 	}
-	result, err := handler(req.Params)
+	result, err := handler(ctx, req.Params)
 
 	if err != nil {
-		return jsonrpc.RPCResponse{
-			Jsonrpc: "2.0",
-			ID:      req.ID,
-			Error: &jsonrpc.RPCError{
-				Code:    -32603,
-				Message: err.Error(),
-			},
-		}
+		return s.handleError(req.ID, err, nil)
 	}
 
-	resultByte, _ := json.Marshal(result)
+	resultByte, err := json.Marshal(result)
+	if err != nil {
+		return s.handleError(req.ID, err, &handleErrorOpts{code: -32700, msg: "Response marshaling failed."})
+	}
 
 	return jsonrpc.RPCResponse{
 		Jsonrpc: "2.0",
@@ -112,4 +106,38 @@ func (s Server) sendResponse(res jsonrpc.RPCResponse) {
 	}
 
 	fmt.Println(string(resBytes))
+}
+
+func (s Server) handleError(id any, err error, opts *handleErrorOpts) jsonrpc.RPCResponse {
+	config := handleErrorOpts{
+		code: -32603,
+		msg:  "",
+	}
+
+	if opts != nil {
+		if opts.code != 0 {
+			config.code = opts.code
+		}
+		if opts.msg != "" {
+			config.msg = opts.msg
+		}
+	}
+
+	message := config.msg
+	if message == "" {
+		if err != nil {
+			message = err.Error()
+		} else {
+			message = "Something went terribly wrong"
+		}
+	}
+
+	return jsonrpc.RPCResponse{
+		Jsonrpc: "2.0",
+		ID:      id,
+		Error: &jsonrpc.RPCError{
+			Code:    config.code,
+			Message: message,
+		},
+	}
 }
